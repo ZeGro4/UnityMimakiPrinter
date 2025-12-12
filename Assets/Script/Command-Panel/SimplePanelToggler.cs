@@ -33,6 +33,7 @@ public class SimplePanelToggler : MonoBehaviour
         if (targetPanel != null)
         {
             targetPanel.SetActive(!targetPanel.activeSelf);
+            PlayerMovement.isMovind = !PlayerMovement.isMovind;
         }
     }
 }

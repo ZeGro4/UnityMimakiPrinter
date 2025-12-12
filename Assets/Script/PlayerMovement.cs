@@ -12,6 +12,7 @@ public class PlayerMovement : MonoBehaviour
 
     // Гравитация
     public float gravity = -9.81f;
+    public static bool isMovind = true;
     private Vector3 velocity;
 
     void Start()
@@ -38,7 +39,7 @@ public class PlayerMovement : MonoBehaviour
 
         // Создаем вектор движения на основе направления, куда смотрит персонаж
         Vector3 move = transform.right * x + transform.forward * z;
-
+        if(isMovind) 
         // Перемещаем персонажа с помощью CharacterController
         controller.Move(move * speed * Time.deltaTime);
 

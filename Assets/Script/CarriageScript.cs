@@ -1,145 +1,81 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CarriageScript : MonoBehaviour
 {
     private Coroutine moveCoroutine;
-    private bool isMoving = false;
-    private Vector3 originalPosition; // Сохраняем исходную позицию
+    private Vector3 originalPosition;
 
-    public Vector3 targetPosition;
+    // Скорость постоянная
+    [SerializeField] private float constantSpeed = 4f;
 
+    // Твои границы
+    public float minZ = 3.39f;
+    public float maxZ = 3.91f;
 
     void Start()
     {
-        targetPosition = new Vector3(
-                transform.position.x,
-                transform.position.y,
-                Random.Range(3.39f, 3.91f)
-            );
-    }
-
-
-    // Основная функция для перемещения туда-сюда
-    public void MoveBackAndForth( float totalDuration)
-    {
-        
-        // Если уже движется, останавливаем предыдущую корутину
-        if (isMoving && moveCoroutine != null)
-        {
-            StopCoroutine(moveCoroutine);
-        }
-
-        // Сохраняем текущую позицию как точку A
+        // Сохраняем, чтобы в конце вернуть каретку на место
         originalPosition = transform.position;
-
-        // Запускаем корутину движения туда-сюда
-        moveCoroutine = StartCoroutine(MoveBackAndForthCoroutine(targetPosition, totalDuration));
     }
 
-    // Корутина для движения туда-сюда
-    private IEnumerator MoveBackAndForthCoroutine(Vector3 targetPosition, float totalDuration)
+    public void MoveWithConstantSpeed(float moveTime)
     {
-        isMoving = true;
-        float elapsedTime = 0f;
+        if (moveCoroutine != null) StopCoroutine(moveCoroutine);
+        moveCoroutine = StartCoroutine(MoveRoutine(moveTime));
+    }
 
-        // Вычисляем время для одного направления (половина общего времени)
-        float oneWayDuration = totalDuration / 2f;
+    private IEnumerator MoveRoutine(float duration)
+    {
+        float timer = 0f;
 
-        // Движение ВПЕРЕД: от originalPosition к targetPosition
-        while (elapsedTime < oneWayDuration)
+        // 1. Сразу выбираем первую цель.
+        // Если мы сейчас ближе к низу (minZ), то едем вверх (к maxZ), и наоборот.
+        float currentTargetZ = (Mathf.Abs(transform.position.z - minZ) < Mathf.Abs(transform.position.z - maxZ))
+                               ? maxZ
+                               : minZ;
+
+        while (timer < duration)
         {
-            float t = elapsedTime / oneWayDuration;
-            transform.position = Vector3.Lerp(originalPosition, targetPosition, t);
-            elapsedTime += Time.deltaTime;
+            // Рассчитываем шаг (расстояние) на этот кадр
+            float step = constantSpeed * Time.deltaTime;
+
+            // MoveTowards - это функция, которая двигает число current к target
+            // Она САМА следит, чтобы мы не перелетели и не дергались.
+            float newZ = Mathf.MoveTowards(transform.position.z, currentTargetZ, step);
+
+            // Применяем позицию (X и Y берем из originalPosition, чтобы не сбивались)
+            transform.position = new Vector3(originalPosition.x, originalPosition.y, newZ);
+
+            // Проверяем: доехали ли мы до цели? (с погрешностью 0.001f)
+            if (Mathf.Abs(transform.position.z - currentTargetZ) < 0.001f)
+            {
+                // Если доехали, меняем цель на противоположную
+                if (currentTargetZ == maxZ)
+                    currentTargetZ = minZ;
+                else
+                    currentTargetZ = maxZ;
+            }
+
+            timer += Time.deltaTime;
             yield return null;
         }
 
-        // Гарантируем точное достижение целевой точки
-        transform.position = targetPosition;
-
-        // Сбрасываем время для обратного пути
-        elapsedTime = 0f;
-
-        // Движение НАЗАД: от targetPosition к originalPosition
-        while (elapsedTime < oneWayDuration)
-        {
-            float t = elapsedTime / oneWayDuration;
-            transform.position = Vector3.Lerp(targetPosition, originalPosition, t);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        // Возвращаемся в исходную позицию
+        // Время вышло - возвращаем в исходную точку (как было в твоем первом коде)
         transform.position = originalPosition;
-        isMoving = false;
+        moveCoroutine = null;
     }
 
-
-    public void MoveBackAndForthSmooth(Vector3 targetPosition, float totalDuration)
-    {
-        if (isMoving && moveCoroutine != null)
-        {
-            StopCoroutine(moveCoroutine);
-        }
-
-        originalPosition = transform.position;
-        moveCoroutine = StartCoroutine(MoveBackAndForthSmoothCoroutine(targetPosition, totalDuration));
-    }
-
-    private IEnumerator MoveBackAndForthSmoothCoroutine(Vector3 targetPosition, float totalDuration)
-    {
-        isMoving = true;
-        float elapsedTime = 0f;
-
-        while (elapsedTime < totalDuration)
-        {
-
-            float t = Mathf.Sin(elapsedTime / totalDuration * Mathf.PI);
-
-            // Преобразуем от -1..1 к 0..1
-            t = (t + 1f) / 2f;
-
-            transform.position = Vector3.Lerp(originalPosition, targetPosition, t);
-            elapsedTime += Time.deltaTime;
-            yield return null;
-        }
-
-        // Гарантируем возврат в исходную позицию
-        transform.position = originalPosition;
-        isMoving = false;
-    }
-
-    // Функция для остановки перемещения
-    public void StopMoving()
-    {
-        if (isMoving && moveCoroutine != null)
-        {
-            StopCoroutine(moveCoroutine);
-            isMoving = false;
-        }
-    }
-
-    // Проверка, движется ли объект
-    public bool IsMoving()
-    {
-        return isMoving;
-    }
-
-    // Пример использования в Update
+    // Твое управление для проверки
     void Update()
     {
-        // Пример: при нажатии пробела двигаем объект туда-сюда
         if (Input.GetKeyDown(KeyCode.Space))
         {
-
-           
-
-            MoveBackAndForth(5f);
-
-            // Или используйте плавную версию:
-            // MoveBackAndForthSmooth(targetPosition, 5f);
+            MoveWithConstantSpeed(5f);
         }
+
+        // Управление скоростью
+        if (Input.GetKeyDown(KeyCode.UpArrow)) constantSpeed += 0.5f;
+        if (Input.GetKeyDown(KeyCode.DownArrow)) constantSpeed = Mathf.Max(0.1f, constantSpeed - 0.5f);
     }
 }

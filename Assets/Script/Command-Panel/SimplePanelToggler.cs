@@ -3,6 +3,7 @@
 public class SimplePanelToggler : MonoBehaviour
 {
     private GameObject targetPanel;
+   
 
     [Header("Скрывать при старте игры?")]
     // Если эта галочка стоит, панель скроется при запуске игры.

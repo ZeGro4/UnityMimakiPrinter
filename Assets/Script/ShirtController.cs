@@ -9,6 +9,7 @@ public class ShirtController : MonoBehaviour {
 	public Material materialGreen;
 	public Material materialYellow;
 
+	public CarriageScript _carriageScript;
 
 	bool isColored= false;
 	// Use this for initialization
@@ -21,29 +22,33 @@ public class ShirtController : MonoBehaviour {
 
 		if (animator != null)
 		{
-			if (Input.GetKeyDown(KeyCode.R))
+           
+            if (Input.GetKeyDown(KeyCode.R))
 			{
 				ColoredShirt("red");
-				
-			}
+              
+
+            }
             if (Input.GetKeyDown(KeyCode.G))
             {
                 ColoredShirt("green");
+               
 
             }
 			if (Input.GetKeyDown(KeyCode.Y))
 			{
                 ColoredShirt("yellow");
+               
             }
-           
+			
         }
 
 	}
 
 	public void ColoredShirt(string color)
 	{
-        
-		if (isColored) {
+        _carriageScript.MoveBackAndForth(10f);
+        if (isColored) {
 			gameObject.transform.position = new Vector3(14.48f, 7.85f, -10.49f);
 
             animator.SetBool("IsMoving", false);

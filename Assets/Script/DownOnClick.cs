@@ -1,17 +1,24 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class DownOnClick : MonoBehaviour {
-
+public class DownOnClick : MonoBehaviour
+{
     // Вектор перемещения при клике (настрой в инспекторе)
-    public Vector3 moveOffset = new Vector3(1f, 0f, 0f);  // Пример: +1 по X
+    public Vector3 moveOffset = new Vector3(1f, 0f, 0f);
+
+    // Объект, который нужно показать (перетащи в инспекторе)
+    public GameObject objectToShow;
 
     public void OnMouseDown()
     {
-        // Перемещаем объект (относительно текущей позиции)
-        transform.Translate(moveOffset, Space.Self);  // Space.Self = локальные оси объекта
+        // Перемещаем объект
+        transform.Translate(moveOffset, Space.Self);
+        Debug.Log("Объект перемещён на: " + moveOffset);
 
-             Debug.Log("Объект перемещён на: " + moveOffset);
+        // Показываем скрытый объект
+        if (objectToShow != null)
+        {
+            objectToShow.SetActive(true);
+            Debug.Log("Объект показан: " + objectToShow.name);
+        }
     }
 }

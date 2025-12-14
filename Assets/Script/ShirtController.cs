@@ -47,7 +47,7 @@ public class ShirtController : MonoBehaviour {
 
 	public void ColoredShirt(string color)
 	{
-        _carriageScript.MoveBackAndForth(10f);
+        _carriageScript.MoveWithConstantSpeed(10f);
         if (isColored) {
 			gameObject.transform.position = new Vector3(14.48f, 7.85f, -10.49f);
 

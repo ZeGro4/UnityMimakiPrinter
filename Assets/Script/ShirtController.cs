@@ -11,6 +11,8 @@ public class ShirtController : MonoBehaviour {
 
 	public CarriageScript _carriageScript;
 
+	public GameObject paper;
+
 	bool isColored= false;
 	// Use this for initialization
 	void Start () {
@@ -47,11 +49,10 @@ public class ShirtController : MonoBehaviour {
 
 	public void ColoredShirt(string color)
 	{
-        _carriageScript.MoveWithConstantSpeed(10f);
+		paper.SetActive(false);
+        _carriageScript.StartMoving(9f);
         if (isColored) {
-			gameObject.transform.position = new Vector3(14.48f, 7.85f, -10.49f);
-
-            animator.SetBool("IsMoving", false);
+			return;
         }
         animator.SetBool("IsMoving", true);
 
@@ -74,5 +75,6 @@ public class ShirtController : MonoBehaviour {
 	{
 		yield return new WaitForSeconds(6f);
 		gameObject.GetComponent<MeshRenderer>().material = material;
+		paper.SetActive(true);
 	}
 }

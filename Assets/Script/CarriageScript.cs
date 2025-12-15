@@ -3,79 +3,96 @@ using UnityEngine;
 
 public class CarriageScript : MonoBehaviour
 {
-    private Coroutine moveCoroutine;
-    private Vector3 originalPosition;
-
-    // Скорость постоянная
-    [SerializeField] private float constantSpeed = 4f;
-
-    // Твои границы
-    public float minZ = 3.39f;
+    [Header("Границы перемещения")]
+    public float minZ = -3.39f;
     public float maxZ = 3.91f;
 
-    void Start()
+    [Header("Скорость (ед/сек)")]
+    // Эта скорость НЕ зависит от времени работы таймера
+    public float moveSpeed = 1.0f;
+
+    // Храним ссылку на текущую корутину, чтобы можно было перезапустить таймер
+    private Coroutine movementCoroutine;
+
+    // Для теста в инспекторе (галочка, чтобы запустить движение)
+    [Header("Тест (нажми в Play Mode)")]
+    public float testDuration = 5.0f;
+    public bool clickToStart = false;
+
+    private void Update()
     {
-        // Сохраняем, чтобы в конце вернуть каретку на место
-        originalPosition = transform.position;
+        // Просто для удобного теста через инспектор
+        if (clickToStart)
+        {
+            clickToStart = false;
+            StartMoving(testDuration);
+        }
     }
 
-    public void MoveWithConstantSpeed(float moveTime)
+    // --- ГЛАВНАЯ ФУНКЦИЯ ---
+    // Вызывайте её и передавайте время в секундах
+    public void StartMoving(float duration)
     {
-        if (moveCoroutine != null) StopCoroutine(moveCoroutine);
-        moveCoroutine = StartCoroutine(MoveRoutine(moveTime));
+        // Если объект уже двигается, останавливаем старое движение и запускаем новое
+        if (movementCoroutine != null) StopCoroutine(movementCoroutine);
+
+        movementCoroutine = StartCoroutine(MoveRoutine(duration));
     }
 
     private IEnumerator MoveRoutine(float duration)
     {
         float timer = 0f;
 
-        // 1. Сразу выбираем первую цель.
-        // Если мы сейчас ближе к низу (minZ), то едем вверх (к maxZ), и наоборот.
-        float currentTargetZ = (Mathf.Abs(transform.position.z - minZ) < Mathf.Abs(transform.position.z - maxZ))
-                               ? maxZ
-                               : minZ;
+        // Определяем начальную цель. 
+        // Если мы ближе к minZ, то едем к maxZ, и наоборот.
+        float targetZ = (Mathf.Abs(transform.position.z - minZ) < Mathf.Abs(transform.position.z - maxZ)) ? maxZ : minZ;
 
+        // Цикл работает, пока таймер меньше заданного времени
         while (timer < duration)
         {
-            // Рассчитываем шаг (расстояние) на этот кадр
-            float step = constantSpeed * Time.deltaTime;
+            // 1. Двигаем объект к текущей цели с заданной скоростью
+            // Mathf.MoveTowards гарантирует линейную постоянную скорость
+            float currentZ = transform.position.z;
+            float step = moveSpeed * Time.deltaTime;
 
-            // MoveTowards - это функция, которая двигает число current к target
-            // Она САМА следит, чтобы мы не перелетели и не дергались.
-            float newZ = Mathf.MoveTowards(transform.position.z, currentTargetZ, step);
+            float newZ = Mathf.MoveTowards(currentZ, targetZ, step);
 
-            // Применяем позицию (X и Y берем из originalPosition, чтобы не сбивались)
-            transform.position = new Vector3(originalPosition.x, originalPosition.y, newZ);
+            // Применяем позицию
+            Vector3 pos = transform.position;
+            pos.z = newZ;
+            transform.position = pos;
 
-            // Проверяем: доехали ли мы до цели? (с погрешностью 0.001f)
-            if (Mathf.Abs(transform.position.z - currentTargetZ) < 0.001f)
+
+            if (Mathf.Approximately(newZ, targetZ))
             {
-                // Если доехали, меняем цель на противоположную
-                if (currentTargetZ == maxZ)
-                    currentTargetZ = minZ;
+                // Если доехали до maxZ, меняем цель на minZ и наоборот
+                if (targetZ == maxZ)
+                    targetZ = minZ;
                 else
-                    currentTargetZ = maxZ;
+                    targetZ = maxZ;
             }
 
+            // 3. Обновляем таймер
             timer += Time.deltaTime;
-            yield return null;
+
+            yield return null; // Ждем следующий кадр
         }
 
-        // Время вышло - возвращаем в исходную точку (как было в твоем первом коде)
-        transform.position = originalPosition;
-        moveCoroutine = null;
+        // (Опционально) Когда время вышло, объект просто останавливается там, где он был.
+        Debug.Log("Время вышло, объект остановлен.");
+        movementCoroutine = null;
     }
 
-    // Твое управление для проверки
-    void Update()
+    public void UpCarriage()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            MoveWithConstantSpeed(5f);
-        }
-
-        // Управление скоростью
-        if (Input.GetKeyDown(KeyCode.UpArrow)) constantSpeed += 0.5f;
-        if (Input.GetKeyDown(KeyCode.DownArrow)) constantSpeed = Mathf.Max(0.1f, constantSpeed - 0.5f);
+        transform.position += new Vector3(0, 0.1f, 0);
+    }
+    public void DefaultCarriage()
+    {
+        transform.position += new Vector3(0, 0.1f, 0);
+    }
+    public void DownCarriage()
+    {
+        transform.position -= new Vector3(0, 0.3f, 0);
     }
 }

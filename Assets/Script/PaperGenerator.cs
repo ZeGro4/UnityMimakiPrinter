@@ -20,6 +20,14 @@ public class PaperGenerator : MonoBehaviour {
 	{
 		GameObject paper = Instantiate(papper, transform.position,Quaternion.identity);
 		paper.GetComponent<PaperScript>().Printing();
-		carriage.MoveWithConstantSpeed(15f);
+		carriage.StartMoving(13f);
+
+
+	}
+
+	private IEnumerator KillPAper() { 
+	
+		yield return new WaitForSeconds(20);
+		
 	}
 }

@@ -49,31 +49,36 @@ public class ShirtController : MonoBehaviour {
 
 	public void ColoredShirt(string color)
 	{
-		paper.SetActive(false);
-        _carriageScript.StartMoving(9f);
-        if (isColored) {
-			return;
-        }
-        animator.SetBool("IsMoving", true);
+		
+        
+        if (!isColored) {
+            paper.SetActive(false);
+            _carriageScript.StartMoving(9f);
+            switch (color)
+            {
 
-        switch (color) {
-
-			case "red":
-                StartCoroutine(ColorShirt(materialRed));
-				break;
-			case "green":
-				StartCoroutine(ColorShirt(materialGreen));
-				break;
-			case "yellow":
-				StartCoroutine(ColorShirt(materialYellow));
-				break;
+                case "red":
+                    StartCoroutine(ColorShirt(materialRed));
+                    break;
+                case "green":
+                    StartCoroutine(ColorShirt(materialGreen));
+                    break;
+                case "yellow":
+                    StartCoroutine(ColorShirt(materialYellow));
+                    break;
+            }
+            animator.SetBool("IsMoving", true);
         }
-		isColored = true;
+       
+
+        
+		
 	}
 
 	private IEnumerator ColorShirt(Material material)
 	{
-		yield return new WaitForSeconds(6f);
+        isColored = true;
+        yield return new WaitForSeconds(6f);
 		gameObject.GetComponent<MeshRenderer>().material = material;
 		paper.SetActive(true);
 	}
